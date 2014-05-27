@@ -1,12 +1,11 @@
 var app = require('http').createServer(handler)
-, io = require('socket.io').listen(app)
+, io = require('socket.io').listen(app,{ log: false })
 , dl  = require('delivery')
 , fs = require('fs')
 var clients = [];
 app.listen(8080);
 
 function handler (req, res) {
-  console.log(req.url);
   if (req.url == "/favicon.ico") return;
   fs.readFile(__dirname + req.url, 
   function (err, data) {
@@ -38,9 +37,9 @@ io.sockets.on('connection', function(socket) {
             console.log('File could not be saved.');
           }
           else {
-            for (var i = clients.length - 1; i >= 0; i--) if (clients[i].chan == data.chan) clients[i].d.send( {name: file.name, path : __dirname + '/' + file.name});
+            for (var i = clients.length - 1; i >= 0; i--) if (clients[i].chan == data.chan && clients[i].id != socket.id) clients[i].d.send( {name: file.name, path : __dirname + '/' + file.name});
               fs.unlink(__dirname + '/' + file.name, function (err) {
-                if (err) response.errors.push("Erorr : " + err);
+                if (err) console.log("Erorr : " + err);
                 else console.log('Successfully cleaned up transfer!');
             });
           };

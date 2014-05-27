@@ -1,10 +1,11 @@
 var holder = document.getElementById('holder');
 holder.ondragover = function () { this.className = 'hover'; return false; };
 holder.ondragend = function () { this.className = ''; return false; };
-document.getElementById('info').onclick = function () { alertify.alert('This application allows you to quickly send files via <a href="http://en.wikipedia.org/wiki/WebSocket"WebSockets">WebSockets</a> to a fake multicast session (data passes through server). Using socket.io this app is compatible with many different browsers (tested in Chrome and Desktop Safari). To join a differnt canvas just add /<NAME> to the URL.') };
+document.getElementById('info').onclick = function () { alertify.alert('This application allows you to quickly send files via <a href="http://en.wikipedia.org/wiki/WebSocket"WebSockets">WebSockets</a> to a fake multicast session (data passes through server). Using socket.io this app is compatible with many different browsers (tested in Chrome and Desktop Safari). To join a differnt canvas just add /[Canvas Name] to the URL.') };
   var socket = io.connect('http://localhost:8080');
   socket.on('connect', function () {
     socket.on('disconnect', function () { alertify.error("Socket disconnected."); });
+    socket.on('reconnecting',function() { location.reload() }); 
     socket.on('error', function () { alertify.error("Unexpected error occured."); })
     socket.emit('join', { chan: window.location.pathname});
   	 var delivery = new Delivery(socket);
@@ -18,7 +19,7 @@ document.getElementById('info').onclick = function () { alertify.alert('This app
     ok     : "Accept",
     cancel : "Deny"
     } });
-      alertify.confirm("Accept new file with " + file.uid, function (e) {
+      alertify.confirm("Accept new file with " + file.name, function (e) {
         if (e){
           alertify.log("Saving file.");
           setTimeout(function(){saveFile(file);}, 500);
@@ -29,8 +30,11 @@ document.getElementById('info').onclick = function () { alertify.alert('This app
   this.className = '';
   e.preventDefault();
   var file = e.dataTransfer.files[0];
+  if(file.size == 0) alertify.error("Can't send folder.");
+  else{
   alertify.log("Sending file.");
   delivery.send(file);
+}
   console.log(file);
   return false;
 };
