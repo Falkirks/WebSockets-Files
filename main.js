@@ -25,7 +25,7 @@ function handler (req, res) {
 io.sockets.on('connection', function(socket) {
   console.log('Client Socket connected');
   socket.on('join', function(data) {
-   sendMessage(data.chan, "New user has joined canvas");
+   sendMessage(data.chan, "New user has joined canvas", 1);
     var delivery = dl.listen(socket);
     console.log('Socket joined ' + data.chan);
     delivery.on('delivery.connect', function(delivery) {
@@ -33,10 +33,11 @@ io.sockets.on('connection', function(socket) {
       pushClient(new Client(socket.id, data.chan, delivery, socket));
           socket.on('disconnect', function () {
             console.log("Client disconnected");
-            sendMessage(data.chan, "User left channel");
+            sendMessage(data.chan, "User left channel", 2);
             clientDisconnect(socket.id);
          });
       delivery.on('receive.success', function(file) {
+         socket.emit('m',{ message: 'File sent successfully', type: 1});
         fs.writeFile(__dirname + "/" + file.name, file.buffer, function(err) {
           if (err) console.log('File could not be saved.');
           else {
@@ -61,9 +62,9 @@ function Client (id, chan, d, s) {
   this.d = d;
   console.log("New client generated with  "+ id);
 }
-function sendMessage(chan,m){
+function sendMessage(chan,m,t){
    for (var i = clients.length - 1; i >= 0; i--) {
-      if(clients[i].chan == chan) clients[i].s.emit('m', { message: m });
+      if(clients[i].chan == chan) clients[i].s.emit('m', { message: m, type: t});
    };
 }
 function clientDisconnect(id){

@@ -6,7 +6,11 @@ document.getElementById('info').onclick = function () { alertify.alert('This app
   socket.on('connect', function () {
     socket.on('disconnect', function () { alertify.error("Socket disconnected."); });
     socket.on('reconnecting',function() { location.reload() }); 
-    socket.on('m',function(data) { alertify.log(data.message); }); 
+    socket.on('m',function(data) { 
+      if(data.type == 1)  alertify.success(data.message);
+      else if(data.type == 2)  alertify.error(data.message);
+      else alertify.log(data.message); 
+    }); 
     socket.on('error', function () { alertify.error("Unexpected error occured."); })
     socket.emit('join', { chan: window.location.pathname});
   	 var delivery = new Delivery(socket);
